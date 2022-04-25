@@ -10,10 +10,11 @@ x-environment: &airflow_environment
   - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
   - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
 
-x-airflow-image: &airflow_image apache/airflow:2.0.0-python3.8
+x-airflow-image: &airflow_image apache/airflow
 # ====================================== /AIRFLOW ENVIRONMENT VARIABLES ======================================
 services:
   postgres:
+    container_name: postgres
     image: postgres:12-alpine
     environment:
       - POSTGRES_USER=airflow
@@ -21,6 +22,15 @@ services:
       - POSTGRES_DB=airflow
     ports:
       - "5432:5432"
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    ports:
+        - "15432:80"
+    environment:
+        PGADMIN_DEFAULT_EMAIL: username@gmail.com
+        PGADMIN_DEFAULT_PASSWORD: password
 
   init:
     image: *airflow_image
@@ -31,6 +41,7 @@ services:
     command: -c 'airflow db init && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org'
 
   webserver:
+    container_name: aiflow-wevserver
     image: *airflow_image
     restart: always
     depends_on:
@@ -43,6 +54,7 @@ services:
     command: webserver
 
   scheduler:
+    container_name: airflow-scheduler
     image: *airflow_image
     restart: always
     depends_on:
